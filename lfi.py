@@ -36,17 +36,17 @@ def large_fi(A, factor, band):
     factor: The scaling factor such that the full output would be of size (factor*N)x(factor*M)
 
     band: An array with the indexes required over the second axis. If the length of
-    this array is K, then the output is of size (factor*N)xK.
+    this array is K, then the size of the output is (factor*N)xK.
     """
 
     N, M = A.shape # I assume even N and M
 
     F = np.fft.fft2(A)
 
-    ANK, OUT = band_padding_fft2d(np.conj(F), factor, band)
+    OUT = band_padding_fft2d(np.conj(F), factor, band)
     OUT = np.conj(OUT)/(N*M)
 
-    return ANK, OUT
+    return OUT
 
 def band_padding_fft2d(A, factor, band):
     """A simple implementation of fft2d that automatically takes into account
@@ -63,9 +63,15 @@ def band_padding_fft2d(A, factor, band):
 
     indMK = indM.dot(indK)
 
-    complex_factors = np.exp(-1j*2*np.pi*indMK/M)
+    complex_factors = np.exp(-1j*2*np.pi*indMK/(factor*M))
 
-    ANK = A.dot(complex_factors)
+    ank = A.dot(complex_factors)
+
+    # now I perform regular zero-padding on the remaining direction
+    # this could be further improved
+    ANK = np.zeros((factor*N, len(band)), dtype=complex)
+    ANK[:int(N/2),:] = ank[:int(N/2),:]
+    ANK[-int(N/2):,:] = ank[-int(N/2):,:]
 
     # now compute one ftt1d for each column of the band
     OUT = np.fft.fft(ANK,axis=0)
