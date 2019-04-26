@@ -3,7 +3,7 @@ import imageio
 
 def test_data():
 
-    im = imageio.imread('./image-710x473.jpg')
+    im = imageio.imread('./image-2560x1650.jpg')
 
     return np.array(im[:,:,0], dtype=complex)
 
